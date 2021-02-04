@@ -10,7 +10,7 @@ import SpriteKit
 import GameplayKit
 
 class GameViewController: UIViewController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -22,6 +22,10 @@ class GameViewController: UIViewController {
                 
                 // Present the scene
                 view.presentScene(scene)
+            }
+            
+            if #available(iOS 11.0, *), let view = self.view {
+               view.frame = self.view.safeAreaLayoutGuide.layoutFrame
             }
             
             view.ignoresSiblingOrder = true
