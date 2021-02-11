@@ -8,12 +8,23 @@
 import SpriteKit
 import GameplayKit
 
+let gameTime = 60.0
+
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //MARK: Game Properties
     // MARK:-
     
+    // MARK: HUD
+    var scoreLabel: SKLabelNode?
+    var currentScore: Int = 0 {
+        didSet {
+            self.scoreLabel?.text = "SCORE: \(self.currentScore)"
+        }
+    }
+    
     // MARK: Nodes
+    var bottomBar: SKSpriteNode?
     var player: Player? = Player(color: .red, size: CGSize(width: 50, height: 50))
     var block = Block(color: .yellow, size: CGSize(width: 50, height: 50))
     
@@ -25,14 +36,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var tracksArray: [SKSpriteNode]? = [SKSpriteNode]()
     var blocks = [Block]()
     var walls = [Wall]()
-    let trackVelocities = [180, 200, 250]
+    let trackVelocities = [380, 400, 450]
     var velocityArray = [Int]()
     
     // MARK: Collision Cateogires
     let playerCategory: UInt32 = 0x1 << 0 //1
     let wallCategory: UInt32 = 0x1 << 1 //2
     let enemyCategory: UInt32 = 0x1 << 2 //4
-    let powerUpCategory: UInt32 = 0x1 << 3 // 8
+    let powerUpCategory: UInt32 = 0x1 << 3 //8
     
     var playerVelocity = CGVector(dx: 0, dy: 0)
     var currentTrack = 1
@@ -41,8 +52,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         addTracks()
         addPlayer()
+        createHUD()
         
         self.physicsWorld.contactDelegate = self
+        
+        let swipeLeft = UISwipeGestureRecognizer(target: self,
+            action: #selector(GameScene.swipeLeft(sender:)))
+        swipeLeft.direction = .left
+        view.addGestureRecognizer(swipeLeft)
+        let swipeRight = UISwipeGestureRecognizer(target: self,
+            action: #selector(GameScene.swipeRight(sender:)))
+        swipeRight.direction = .right
+        view.addGestureRecognizer(swipeRight)
 
         for _ in 0...2 {
             let randomNumberForVelocty = GKRandomSource.sharedRandom().nextInt(upperBound: 3)
@@ -55,30 +76,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.run(SKAction.repeatForever(SKAction.sequence([SKAction.run {
             self.spawnEnemies()
-        }, SKAction.wait(forDuration: 1)]
+        }, SKAction.wait(forDuration: 0.5)]
         )))
-    }
-    
-    
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let touch = touches.first {
-            let location = touch.previousLocation(in: self)
-            let node = self.nodes(at: location).first
-
-            if node?.name == "up" {
-                moveVertically(up: true)
-            }
-            else if node?.name == "down" {
-                moveVertically(up: false)
-            }
-        }
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        if !movingToTrack {
-//            player?.removeAllActions()
-//        }
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
@@ -96,22 +95,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if playerBody.categoryBitMask == playerCategory && otherBody.categoryBitMask == enemyCategory {
             self.run(SKAction.playSoundFileNamed("fail.wav", waitForCompletion: true))
-            print("Enemy Hit")
-            movePlayerToStart()
+//            movePlayerToStart()
             if let otherNode = otherBody.node {
                 removeEnemy(node: otherNode)
             }
         }
-        
-//        else if playerBody.categoryBitMask == playerCategory && otherBody.categoryBitMask == targetCategory {
-//            print("Target hit")
-//            nextLevel(playerPhysicsBody: playerBody)
-//        }
-//        else if playerBody.categoryBitMask == playerCategory && otherBody.categoryBitMask == powerUpCategory {
-//            self.run(SKAction.playSoundFileNamed("powerUp.wav", waitForCompletion: true))
-//            otherBody.node?.removeFromParent()
-//            remainingTime += 5
-//        }
     }
 
     override func update(_ currentTime: TimeInterval) {
