@@ -16,6 +16,13 @@ enum Enemies: Int {
 
 extension GameScene {
     
+    func createHUD() {
+        scoreLabel = self.childNode(withName: "score") as? SKLabelNode
+        bottomBar = self.childNode(withName: "bottomBar") as? SKSpriteNode
+        
+        currentScore = 0
+    }
+    
     func addTracks() {
         for i in 0...2 {
             if let track = self.childNode(withName: "track\(i)") as? SKSpriteNode {
@@ -36,8 +43,7 @@ extension GameScene {
             player.physicsBody?.contactTestBitMask = enemyCategory | wallCategory
             player.physicsBody?.affectedByGravity = false
             
-            guard let playerPosition = tracksArray?.first?.position.x else {return}
-            player.position = CGPoint(x: 165+player.size.width, y: self.size.height/2)
+            player.position = CGPoint(x: self.size.width/2, y: 150)
             
             self.addChild(player)
         }
@@ -47,7 +53,7 @@ extension GameScene {
         let enemySprite = SKShapeNode()
         enemySprite.name = "ENEMY"
         
-        enemySprite.path = CGPath(roundedRect: CGRect(x: -10, y: 0, width: 20, height: tracksArray?.first?.size.height ?? 138), cornerWidth: 8, cornerHeight: 8, transform: nil)
+        enemySprite.path = CGPath(roundedRect: CGRect(x: 0, y: -10, width: tracksArray?.first?.size.width ?? 138, height: 20), cornerWidth: 8, cornerHeight: 8, transform: nil)
         
         switch type {
         case .slow:
@@ -60,12 +66,12 @@ extension GameScene {
         
         guard let enemyPosition = tracksArray?[track].position else {return nil}
         
-        enemySprite.position.x = self.size.width + 130
-        enemySprite.position.y = enemyPosition.y - 70
+        enemySprite.position.x = enemyPosition.x - 70
+        enemySprite.position.y = self.size.height
         
         enemySprite.physicsBody = SKPhysicsBody(edgeLoopFrom: enemySprite.path!)
         enemySprite.physicsBody?.categoryBitMask = enemyCategory
-        enemySprite.physicsBody?.velocity = CGVector(dx: -velocityArray[track], dy: 0)
+        enemySprite.physicsBody?.velocity = CGVector(dx: 0, dy: -velocityArray[track])
         
         return enemySprite
     }
